@@ -6,6 +6,9 @@ const nextConfig = {
       enabled: true,
     },
   },
+  turbopack: {
+    root: ".",
+  },
 };
 
 module.exports = nextConfig;
