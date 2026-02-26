@@ -3,12 +3,8 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "NEXTAUTH_SECRET": {
-      "required": true
-    },
-    "NEXTAUTH_URL": {
-      "required": false
-    },
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "NEXTAUTH_URL": "@nextauth_url",
     "NODE_ENV": "production"
   },
   "functions": {
