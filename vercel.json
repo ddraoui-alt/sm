@@ -2,7 +2,6 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "nodeVersion": "24.x",
   "root": ".",
   "env": {
     "NEXTAUTH_SECRET": {
