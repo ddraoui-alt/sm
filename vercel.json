@@ -2,11 +2,6 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "env": {
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "NODE_ENV": "production"
-  },
   "functions": {
     "app/api/**/*.js": {
       "memory": 1024,
