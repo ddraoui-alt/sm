@@ -10,7 +10,13 @@ async function getDb() {
     return db;
   }
 
-  const dbPath = process.env.DATABASE_PATH || './data/students.db';
+  let dbPath = process.env.DATABASE_PATH || './data/students.db';
+  
+  // For Vercel environment, use /tmp directory which is writable
+  if (process.env.VERCEL) {
+    dbPath = '/tmp/students.db';
+  }
+  
   const dir = path.dirname(dbPath);
 
   // Ensure directory exists
