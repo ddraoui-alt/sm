@@ -1,5 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { getDb } from "@/app/lib/db";
 
 export const authOptions = {
   providers: [
@@ -10,11 +12,39 @@ export const authOptions = {
         password: { label: "Mot de passe", type: "password" }
       },
       async authorize(credentials) {
-        // Had l-ma3loumat bach d-dkhel l-site
-        if (credentials.email === "admin@test.com" && credentials.password === "admin123") {
-          return { id: "1", name: "Admin", email: "admin@test.com" };
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null;
+          }
+
+          const db = await getDb();
+          const user = await db.get(
+            'SELECT * FROM users WHERE email = ?',
+            [credentials.email]
+          );
+
+          if (!user) {
+            return null;
+          }
+
+          const passwordMatch = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+
+          if (!passwordMatch) {
+            return null;
+          }
+
+          return {
+            id: user.id.toString(),
+            name: user.name,
+            email: user.email
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
         }
-        return null;
       }
     })
   ],
@@ -28,5 +58,4 @@ export const authOptions = {
 
 const handler = NextAuth(authOptions);
 
-// Hada hwa s-satar li k-iholl l-mouchkil dyal l-Build
 export { handler as GET, handler as POST, handler };
