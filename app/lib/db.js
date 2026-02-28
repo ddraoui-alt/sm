@@ -85,6 +85,7 @@ async function seedTestUser(db) {
   try {
     const bcrypt = (await import('bcryptjs')).default;
     
+    // Check if user already exists
     const existingUser = await db.get(
       'SELECT id FROM users WHERE email = ?',
       ['test@example.com']
@@ -92,13 +93,25 @@ async function seedTestUser(db) {
 
     if (!existingUser) {
       const hashedPassword = await bcrypt.hash('password123', 10);
-      await db.run(
-        'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
-        ['test@example.com', hashedPassword, 'Test User']
-      );
+      try {
+        await db.run(
+          'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
+          ['test@example.com', hashedPassword, 'Test User']
+        );
+        console.log('✓ Test user created successfully');
+      } catch (insertError) {
+        // User might already exist due to unique constraint
+        if (insertError.message.includes('UNIQUE')) {
+          console.log('Test user already exists');
+        } else {
+          console.error('Error inserting test user:', insertError.message);
+        }
+      }
+    } else {
+      console.log('✓ Test user already exists');
     }
   } catch (error) {
-    console.error('Error seeding test user:', error);
+    console.error('Error in seedTestUser:', error.message);
     // Don't throw - continue even if seeding fails
   }
 }

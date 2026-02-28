@@ -14,9 +14,12 @@ export const authOptions = {
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
+            console.warn('Missing credentials');
             return null;
           }
 
+          console.log(`Attempting login for: ${credentials.email}`);
+          
           const db = await getDb();
           const user = await db.get(
             'SELECT * FROM users WHERE email = ?',
@@ -24,25 +27,31 @@ export const authOptions = {
           );
 
           if (!user) {
+            console.warn(`User not found: ${credentials.email}`);
             return null;
           }
 
+          console.log(`User found: ${credentials.email}, verifying password...`);
+          
           const passwordMatch = await bcrypt.compare(
             credentials.password,
             user.password
           );
 
           if (!passwordMatch) {
+            console.warn(`Invalid password for user: ${credentials.email}`);
             return null;
           }
 
+          console.log(`✓ User authenticated: ${credentials.email}`);
+          
           return {
             id: user.id.toString(),
             name: user.name,
             email: user.email
           };
         } catch (error) {
-          console.error("Auth error:", error);
+          console.error("Auth error:", error.message);
           return null;
         }
       }
