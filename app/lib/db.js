@@ -76,6 +76,31 @@ async function initializeDb(db) {
     CREATE INDEX IF NOT EXISTS idx_students_email ON students(email);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   `);
+
+  // Seed test user for demo/testing purposes
+  await seedTestUser(db);
+}
+
+async function seedTestUser(db) {
+  try {
+    const bcrypt = (await import('bcryptjs')).default;
+    
+    const existingUser = await db.get(
+      'SELECT id FROM users WHERE email = ?',
+      ['test@example.com']
+    );
+
+    if (!existingUser) {
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      await db.run(
+        'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
+        ['test@example.com', hashedPassword, 'Test User']
+      );
+    }
+  } catch (error) {
+    console.error('Error seeding test user:', error);
+    // Don't throw - continue even if seeding fails
+  }
 }
 
 export { getDb };
