@@ -41,29 +41,51 @@ async function POST(request) {
     }
 
     const data = await request.json();
+    console.log('Creating student with data:', data);
+    
     const db = await getDb();
 
     const { matricule, nom, prenom, email, telephone, date_naissance, adresse, filiere, niveau } = data;
 
     if (!matricule || !nom || !prenom) {
+      console.warn('Missing required fields:', { matricule, nom, prenom });
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: matricule, nom, prenom are required' },
         { status: 400 }
       );
     }
 
-    const result = await db.run(
-      `INSERT INTO students (matricule, nom, prenom, email, telephone, date_naissance, adresse, filiere, niveau)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [matricule, nom, prenom, email || null, telephone || null, date_naissance || null, adresse || null, filiere || null, niveau || null]
-    );
+    try {
+      const result = await db.run(
+        `INSERT INTO students (matricule, nom, prenom, email, telephone, date_naissance, adresse, filiere, niveau)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [matricule, nom, prenom, email || null, telephone || null, date_naissance || null, adresse || null, filiere || null, niveau || null]
+      );
 
-    return NextResponse.json(
-      { id: result.lastID, message: 'Student added successfully' },
-      { status: 201 }
-    );
+      console.log('✓ Student created successfully with ID:', result.lastID);
+
+      return NextResponse.json(
+        { 
+          id: result.lastID, 
+          message: 'Student added successfully',
+          student: { matricule, nom, prenom, email }
+        },
+        { status: 201 }
+      );
+    } catch (dbError) {
+      console.error('Database error:', dbError.message);
+      
+      if (dbError.message.includes('UNIQUE')) {
+        return NextResponse.json(
+          { error: 'A student with this matricule already exists' },
+          { status: 409 }
+        );
+      }
+      
+      throw dbError;
+    }
   } catch (error) {
-    console.error('Error adding student:', error);
+    console.error('Error adding student:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to add student' },
       { status: 500 }

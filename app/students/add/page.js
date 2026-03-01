@@ -21,6 +21,7 @@ export default function AddStudentPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   if (status === 'unauthenticated') {
     router.push('/auth/login');
@@ -38,23 +39,49 @@ export default function AddStudentPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
+      // Validate required fields
+      if (!formData.matricule.trim() || !formData.nom.trim() || !formData.prenom.trim()) {
+        throw new Error('Matricule, Nom et Prénom sont obligatoires');
+      }
+
       const response = await fetch('/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || 'Failed to add student');
       }
 
-      router.push('/students?success=Student added successfully');
+      setSuccess(`✓ Étudiant ${formData.prenom} ${formData.nom} ajouté avec succès!`);
+      
+      // Reset form
+      setFormData({
+        matricule: '',
+        nom: '',
+        prenom: '',
+        email: '',
+        telephone: '',
+        date_naissance: '',
+        adresse: '',
+        filiere: '',
+        niveau: '',
+      });
+
+      // Redirect after 1.5 seconds
+      setTimeout(() => {
+        router.push('/students');
+      }, 1500);
     } catch (err) {
-      setError(err.message);
+      console.error('Error submitting form:', err);
+      setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -64,7 +91,8 @@ export default function AddStudentPage() {
     <div className="container">
       <h1 style={{ marginTop: '20px' }}>Ajouter un nouvel étudiant</h1>
       
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && <div className="alert alert-error">❌ {error}</div>}
+      {success && <div className="alert" style={{ backgroundColor: '#d4edda', color: '#155724', border: '1px solid #c3e6cb' }}>{success}</div>}
 
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
